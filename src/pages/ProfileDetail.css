@@ -1,0 +1,103 @@
+/* ProfileDetail.css */
+.profile-header {
+  padding-bottom: 8px;
+}
+
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.profile-avatar-lg {
+  font-size: 3rem;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.profile-name {
+  margin-top: 2px;
+}
+
+/* Balance card */
+.balance-card {
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.balance-card--positive {
+  background: var(--green-light);
+  border: 1.5px solid rgba(26, 122, 74, 0.2);
+}
+
+.balance-card--negative {
+  background: var(--red-light);
+  border: 1.5px solid rgba(192, 57, 43, 0.2);
+}
+
+.balance-card--settled {
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+}
+
+.balance-card-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.balance-card-amount {
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.balance-card--positive .balance-card-amount { color: var(--green); }
+.balance-card--negative .balance-card-amount { color: var(--red); }
+.balance-card--settled .balance-card-amount { color: var(--text-muted); }
+
+.balance-card-desc {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Transactions section */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.tx-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+
+.tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-actions {
+  margin-bottom: 8px;
+}

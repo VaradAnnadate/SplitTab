@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="#1a1a1a"/>
+  <!-- Receipt shape (white) -->
+  <path d="M10 6 L22 6 L22 26 L19 24 L16 26 L13 24 L10 26 Z" fill="white"/>
+  <!-- Split line (dark, diagonal) -->
+  <line x1="13" y1="6" x2="20" y2="26" stroke="#1a1a1a" stroke-width="2.2" stroke-linecap="round"/>
+</svg>
