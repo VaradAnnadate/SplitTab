@@ -95,7 +95,7 @@ export default function AddProfileModal({ onAdd, onClose }) {
                   id="custom-emoji-input"
                   className="form-input custom-emoji-input"
                   type="text"
-                  placeholder="e.g. R, 🎮, 🌟"
+                  placeholder="Type a Letter or any Emoji 👾"
                   value={customEmoji}
                   onChange={handleCustomChange}
                   maxLength={8}
