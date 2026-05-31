@@ -26,3 +26,40 @@
   font-weight: 800 !important;
   letter-spacing: -0.03em;
 }
+
+/* Custom emoji button — dashed border, last in grid */
+.emoji-btn-custom {
+  border-style: dashed !important;
+  opacity: 0.6;
+}
+.emoji-btn-custom.selected {
+  opacity: 1;
+  border-style: solid !important;
+}
+
+/* Row shown when custom mode is active */
+.custom-emoji-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  animation: fadeIn 0.15s ease;
+}
+
+.custom-emoji-preview {
+  font-size: 1.8rem;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  flex-shrink: 0;
+}
+
+.custom-emoji-input {
+  flex: 1;
+  font-size: 1.2rem !important;
+}
