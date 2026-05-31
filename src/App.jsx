@@ -1,5 +1,5 @@
-// App.jsx — simple view-based router (no react-router needed)
-import { useState } from 'react';
+// App.jsx — router + OAuth callback handler + sync prompt
+import { useState, useEffect } from 'react';
 import { useStore } from './useStore';
 import Home from './pages/Home';
 import ProfileDetail from './pages/ProfileDetail';
@@ -8,10 +8,30 @@ import InvoiceView from './pages/InvoiceView';
 export default function App() {
   const store = useStore();
   const [view, setView] = useState({ name: 'home' });
+  const [showSyncPrompt, setShowSyncPrompt] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const navigate = (name, params = {}) => setView({ name, ...params });
   const goHome = () => setView({ name: 'home' });
 
+  const { session, localProfileCount, importLocalToCloud, authLoading, dataLoading } = store;
+
+  // After Google OAuth redirect, the session will become active.
+  // If the user has local data, show the sync prompt.
+  useEffect(() => {
+    if (session && localProfileCount > 0) {
+      setShowSyncPrompt(true);
+    }
+  }, [session]);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    await importLocalToCloud();
+    setSyncing(false);
+    setShowSyncPrompt(false);
+  };
+
+  // ── Views ──────────────────────────────────────────────────────────────────────
   if (view.name === 'profile') {
     return (
       <ProfileDetail
@@ -34,9 +54,61 @@ export default function App() {
   }
 
   return (
-    <Home
-      store={store}
-      onSelectProfile={(profileId) => navigate('profile', { profileId })}
-    />
+    <>
+      <Home
+        store={store}
+        onSelectProfile={(profileId) => navigate('profile', { profileId })}
+      />
+
+      {/* ── Sync prompt after first sign-in ── */}
+      {showSyncPrompt && (
+        <div className="modal-overlay">
+          <div className="modal-sheet">
+            <div className="modal-handle" />
+            <h2 className="modal-title">Sync local data?</h2>
+            <p className="modal-subtitle">
+              You have {localProfileCount} friend{localProfileCount !== 1 ? 's' : ''} stored on
+              this device. Upload them to your account?
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                id="sync-yes-btn"
+                className="btn btn-primary btn-full"
+                onClick={handleSync}
+                disabled={syncing}
+              >
+                {syncing ? 'Syncing...' : '☁️ Yes, sync to cloud'}
+              </button>
+              <button
+                id="sync-no-btn"
+                className="btn btn-ghost btn-full"
+                onClick={() => setShowSyncPrompt(false)}
+                disabled={syncing}
+              >
+                No, start fresh
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Global loading overlay (only during data fetch) ── */}
+      {(authLoading || dataLoading) && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(245,245,243,0.85)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          zIndex: 999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexDirection: 'column', gap: 8,
+        }}>
+          <p className="heading-md" style={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            {authLoading ? 'Loading' : 'Syncing'}
+          </p>
+          <p className="label">please wait…</p>
+        </div>
+      )}
+    </>
   );
 }

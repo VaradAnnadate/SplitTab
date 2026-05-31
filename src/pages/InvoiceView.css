@@ -1,4 +1,5 @@
 /* InvoiceView.css */
+
 .invoice-title {
   margin: 6px 0 4px;
 }
@@ -9,135 +10,180 @@
   font-weight: 500;
 }
 
-/* Banner */
-.invoice-banner {
-  border-radius: var(--radius-md);
-  padding: 24px 20px;
-  margin-bottom: 16px;
+.invoice-actions {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
+  margin-top: 20px;
+  padding-bottom: 32px;
 }
 
-.banner-green {
-  background: var(--green-light);
-  border: 1.5px solid rgba(26, 122, 74, 0.2);
-}
-
-.banner-red {
-  background: var(--red-light);
-  border: 1.5px solid rgba(192, 57, 43, 0.2);
-}
-
-.banner-grey {
-  background: var(--surface-2);
+/* ── Export card (the div that becomes the image) ─────────── */
+.invoice-export-card {
+  background: var(--bg);
+  border-radius: var(--radius-md);
   border: 1.5px solid var(--border);
+  overflow: hidden;
+  font-family: var(--font);
 }
 
-.invoice-banner-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+/* Header */
+.export-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1.5px solid var(--border);
 }
 
-.invoice-banner-amount {
-  font-size: 2.4rem;
+.export-brand {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.export-name {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  line-height: 1;
+  margin: 0 0 4px;
+}
+
+.export-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Balance banner */
+.export-banner {
+  padding: 16px 20px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.export-banner--positive {
+  background: rgba(39, 174, 96, 0.08);
+}
+
+.export-banner--negative {
+  background: rgba(192, 57, 43, 0.08);
+}
+
+.export-banner--settled {
+  background: var(--surface-2);
+}
+
+.export-banner-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.export-banner-amount {
+  font-size: 1.8rem;
   font-weight: 900;
   letter-spacing: -0.04em;
   line-height: 1;
 }
 
-.banner-green .invoice-banner-amount { color: var(--green); }
-.banner-red .invoice-banner-amount { color: var(--red); }
-.banner-grey .invoice-banner-amount { color: var(--text-muted); }
+.export-banner--positive .export-banner-amount { color: var(--green); }
+.export-banner--negative .export-banner-amount { color: var(--red); }
+.export-banner--settled  .export-banner-amount { color: var(--text-primary); }
 
-/* Table */
-.invoice-table-card {
-  margin-bottom: 16px;
+/* Transaction table */
+.export-table {
+  padding: 0;
 }
 
-.invoice-table-header {
+.export-table-head {
   display: grid;
-  grid-template-columns: 80px 1fr 80px;
+  grid-template-columns: 70px 1fr auto;
   gap: 8px;
-  padding: 10px 16px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.invoice-row {
-  display: grid;
-  grid-template-columns: 80px 1fr 80px;
-  gap: 8px;
-  padding: 14px 16px;
-  align-items: center;
-}
-
-.invoice-row-date {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.invoice-row-note {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.invoice-tag {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 4px;
-  width: fit-content;
-}
-
-.tag-green {
-  background: var(--green-light);
-  color: var(--green);
-}
-
-.tag-red {
-  background: var(--red-light);
-  color: var(--red);
-}
-
-.invoice-row-amount {
-  font-size: 0.88rem;
-  font-weight: 700;
-  text-align: right;
-}
-
-.amount-green { color: var(--green); }
-.amount-red { color: var(--red); }
-
-.invoice-total-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 14px 16px;
-  font-size: 0.75rem;
+  padding: 10px 20px 8px;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.invoice-total-row .amount-green,
-.invoice-total-row .amount-red {
-  font-size: 1rem;
+.export-divider {
+  height: 1.5px;
+  background: var(--border);
+  margin: 0 20px;
 }
 
-/* Actions */
-.invoice-actions {
+.export-row {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  gap: 8px;
+  padding: 11px 20px;
+  align-items: center;
+}
+
+.export-row-divider {
+  height: 1px;
+  background: var(--surface-2);
+  margin: 0 20px;
+}
+
+.export-row-date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.export-row-note {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.export-row-amount {
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.amount-pos { color: var(--green); }
+.amount-neg { color: var(--red); }
+
+.export-total-row {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.export-empty {
+  padding: 16px 20px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Footer branding */
+.export-footer {
+  padding: 10px 20px 14px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  border-top: 1.5px solid var(--border);
+  text-align: center;
 }
