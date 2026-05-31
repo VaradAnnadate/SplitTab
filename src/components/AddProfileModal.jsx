@@ -32,17 +32,8 @@ export default function AddProfileModal({ onAdd, onClose }) {
     setEmoji(e);
   };
 
-  // Accept only the first grapheme cluster (one emoji)
   const handleCustomChange = (e) => {
-    const val = e.target.value;
-    // Grab the first emoji/character via Intl.Segmenter if available, else slice
-    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-      const segments = [...new Intl.Segmenter().segment(val)];
-      setCustomEmoji(segments[0]?.segment || '');
-    } else {
-      const chars = [...val]; // spread handles emoji properly
-      setCustomEmoji(chars[0] || '');
-    }
+    setCustomEmoji(e.target.value);
   };
 
   return (
@@ -104,7 +95,7 @@ export default function AddProfileModal({ onAdd, onClose }) {
                   id="custom-emoji-input"
                   className="form-input custom-emoji-input"
                   type="text"
-                  placeholder="Type or paste any emoji"
+                  placeholder="e.g. R, 🎮, 🌟"
                   value={customEmoji}
                   onChange={handleCustomChange}
                   maxLength={8}
