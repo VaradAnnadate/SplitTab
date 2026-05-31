@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react';
 import './Modal.css';
 
-const EMOJIS = ['👤','👩','👨','🧑','👩‍💼','👨‍💼','🧑‍💻','👩‍🎤','👨‍🎤','🧑‍🍳','🎅','🧑‍🎓','🦸','🧙','🥷','👻','🐱','🐶','🦊','🐼'];
+const EMOJIS = ['👤', '👩', '👨', '🧑', '👩‍💼', '👨‍💼', '🧑‍💻', '👩‍🎤', '👨‍🎤', '🧑‍🍳', '🎅', '🧑‍🎓', '🦸', '🧙', '🥷', '👻', '🐱', '🐶', '🦊', '🐼'];
 
 export default function AddProfileModal({ onAdd, onClose }) {
   const [name, setName] = useState('');
@@ -95,7 +95,7 @@ export default function AddProfileModal({ onAdd, onClose }) {
                   id="custom-emoji-input"
                   className="form-input custom-emoji-input"
                   type="text"
-                  placeholder="Type a Letter or any Emoji 👾"
+                  placeholder="Type a Letter or any Emoji"
                   value={customEmoji}
                   onChange={handleCustomChange}
                   maxLength={8}
