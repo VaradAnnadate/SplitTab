@@ -125,7 +125,7 @@ export function useStore() {
       for (const lp of localData.profiles) {
         const { data: dbProfile, error: pe } = await supabase
           .from('profiles')
-          .insert([{ name: lp.name, emoji: lp.emoji }])
+          .insert([{ name: lp.name, emoji: lp.emoji, user_id: session.user.id }])
           .select()
           .single();
         if (pe) throw pe;
