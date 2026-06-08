@@ -53,7 +53,10 @@ export default function ProfileCard({ profile, balance, onClick, onDelete, onEdi
   };
 
   return (
-    <div className="profile-card card animate-in" style={style}>
+    <div
+      className="profile-card card animate-in"
+      style={{ ...style, zIndex: menuOpen ? 10 : 1 }}
+    >
       <button
         id={`profile-${profile.id}`}
         className="profile-card-main"
