@@ -184,6 +184,7 @@ export default function Home({ store, onSelectProfile }) {
       {/* ── Footer ───────────────────────────────── */}
       <footer className="home-footer">
         <p>Made by <span className="home-footer-name">Varad Annadate</span></p>
+        <p className="home-footer-version">Version 3.0</p>
       </footer>
 
     </div>

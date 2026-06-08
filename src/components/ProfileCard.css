@@ -3,6 +3,8 @@
   position: relative;
   display: flex;
   align-items: center;
+  /* Override .card overflow:hidden so the 3-dot menu isn't clipped */
+  overflow: visible !important;
 }
 
 .profile-card-main {
