@@ -1,5 +1,5 @@
 // ProfileCard.jsx — Card shown on Home for each friend
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import './ProfileCard.css';
 
 function formatCurrency(amount) {
@@ -10,12 +10,11 @@ function formatCurrency(amount) {
   }).format(Math.abs(amount));
 }
 
-export default function ProfileCard({ profile, balance, onClick, onDelete, style }) {
-  const [showDelete, setShowDelete] = useState(false);
+export default function ProfileCard({ profile, balance, onClick, onDelete, onEdit, style }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
-  const balanceClass =
-    balance > 0 ? 'owed' : balance < 0 ? 'owe' : 'settled';
-
+  const balanceClass = balance > 0 ? 'owed' : balance < 0 ? 'owe' : 'settled';
   const balanceText =
     balance > 0
       ? `Owes you ${formatCurrency(balance)}`
@@ -23,11 +22,38 @@ export default function ProfileCard({ profile, balance, onClick, onDelete, style
       ? `You owe ${formatCurrency(balance)}`
       : 'Settled';
 
+  // Close menu on outside tap
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [menuOpen]);
+
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    onEdit();
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    if (window.confirm(`Remove ${profile.name}? All transactions will be deleted.`)) {
+      onDelete();
+    }
+  };
+
   return (
-    <div
-      className="profile-card card animate-in"
-      style={style}
-    >
+    <div className="profile-card card animate-in" style={style}>
       <button
         id={`profile-${profile.id}`}
         className="profile-card-main"
@@ -46,20 +72,39 @@ export default function ProfileCard({ profile, balance, onClick, onDelete, style
         </div>
       </button>
 
-      {/* Long-press / delete */}
-      <button
-        id={`delete-profile-${profile.id}`}
-        className="profile-card-delete"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (window.confirm(`Remove ${profile.name}? All transactions will be deleted.`)) {
-            onDelete();
-          }
-        }}
-        aria-label="Delete profile"
-      >
-        ···
-      </button>
+      {/* 3-dot menu trigger */}
+      <div className="profile-card-menu-wrap" ref={menuRef}>
+        <button
+          id={`menu-${profile.id}`}
+          className="profile-card-dots"
+          onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v); }}
+          aria-label="Options"
+        >
+          ···
+        </button>
+
+        {menuOpen && (
+          <div className="profile-card-menu" role="menu">
+            <button
+              id={`edit-${profile.id}`}
+              className="profile-menu-item"
+              onClick={handleEdit}
+              role="menuitem"
+            >
+              ✏️ Edit
+            </button>
+            <div className="profile-menu-divider" />
+            <button
+              id={`delete-${profile.id}`}
+              className="profile-menu-item profile-menu-item--danger"
+              onClick={handleDelete}
+              role="menuitem"
+            >
+              🗑 Delete
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

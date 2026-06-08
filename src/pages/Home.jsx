@@ -1,11 +1,13 @@
 // src/pages/Home.jsx
 import { useState, useRef, useEffect } from 'react';
 import AddProfileModal from '../components/AddProfileModal';
+import EditProfileModal from '../components/EditProfileModal';
 import ProfileCard from '../components/ProfileCard';
 import './Home.css';
 
 export default function Home({ store, onSelectProfile }) {
   const [showAddProfile, setShowAddProfile] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(null); // profile object to edit
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -13,6 +15,7 @@ export default function Home({ store, onSelectProfile }) {
     profiles,
     addProfile,
     deleteProfile,
+    updateProfile,
     getBalance,
     user,
     isCloud,
@@ -142,6 +145,7 @@ export default function Home({ store, onSelectProfile }) {
                 balance={getBalance(profile.id)}
                 onClick={() => onSelectProfile(profile.id)}
                 onDelete={() => deleteProfile(profile.id)}
+                onEdit={() => setEditingProfile(profile)}
                 style={{ animationDelay: `${i * 0.05}s` }}
               />
             ))}
@@ -165,6 +169,18 @@ export default function Home({ store, onSelectProfile }) {
           onClose={() => setShowAddProfile(false)}
         />
       )}
+
+      {editingProfile && (
+        <EditProfileModal
+          profile={editingProfile}
+          onSave={async ({ name, emoji }) => {
+            await updateProfile(editingProfile.id, { name, emoji });
+            setEditingProfile(null);
+          }}
+          onClose={() => setEditingProfile(null)}
+        />
+      )}
+
       {/* ── Footer ───────────────────────────────── */}
       <footer className="home-footer">
         <p>Made by <span className="home-footer-name">Varad Annadate</span></p>

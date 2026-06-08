@@ -14,7 +14,7 @@ function formatCurrency(amount) {
 
 export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
   const [showAddTx, setShowAddTx] = useState(false);
-  const { getProfile, addTransaction, deleteTransaction, getBalance } = store;
+  const { getProfile, addTransaction, deleteTransaction, clearTransactions, getBalance } = store;
 
   const profile = getProfile(profileId);
   if (!profile) return null;
@@ -75,7 +75,22 @@ export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
       <div className="page-content">
         <div className="section-header">
           <p className="label">Transactions</p>
-          <span className="tx-count">{profile.transactions.length}</span>
+          <div className="section-header-right">
+            <span className="tx-count">{profile.transactions.length}</span>
+            {sorted.length > 0 && (
+              <button
+                id="clear-all-btn"
+                className="clear-all-btn"
+                onClick={() => {
+                  if (window.confirm(`Clear all ${sorted.length} transaction${sorted.length !== 1 ? 's' : ''} with ${profile.name}? This cannot be undone.`)) {
+                    clearTransactions(profileId);
+                  }
+                }}
+              >
+                Clear All
+              </button>
+            )}
+          </div>
         </div>
 
         {sorted.length === 0 ? (

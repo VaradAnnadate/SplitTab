@@ -101,3 +101,30 @@
 .profile-actions {
   margin-bottom: 8px;
 }
+
+/* Right side of section header — count badge + clear button */
+.section-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clear-all-btn {
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--red);
+  cursor: pointer;
+  padding: 2px 0;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0.8;
+  transition: opacity 0.12s ease;
+}
+
+.clear-all-btn:active {
+  opacity: 1;
+}

@@ -184,6 +184,46 @@ export function useStore() {
     }
   };
 
+  const updateProfile = async (profileId, { name, emoji }) => {
+    if (isCloud) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ name, emoji })
+        .eq('id', profileId);
+      if (error) { alert('Error: ' + error.message); return; }
+      setCloudProfiles(prev => prev.map(p =>
+        p.id === profileId ? { ...p, name, emoji } : p
+      ));
+    } else {
+      setLocalData(d => ({
+        ...d,
+        profiles: d.profiles.map(p =>
+          p.id === profileId ? { ...p, name, emoji } : p
+        ),
+      }));
+    }
+  };
+
+  const clearTransactions = async (profileId) => {
+    if (isCloud) {
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('profile_id', profileId);
+      if (error) { alert('Error: ' + error.message); return; }
+      setCloudProfiles(prev => prev.map(p =>
+        p.id === profileId ? { ...p, transactions: [] } : p
+      ));
+    } else {
+      setLocalData(d => ({
+        ...d,
+        profiles: d.profiles.map(p =>
+          p.id === profileId ? { ...p, transactions: [] } : p
+        ),
+      }));
+    }
+  };
+
   const getProfile = (profileId) =>
     (isCloud ? cloudProfiles : localData.profiles).find(p => p.id === profileId);
 
@@ -264,6 +304,8 @@ export function useStore() {
     // CRUD
     addProfile,
     deleteProfile,
+    updateProfile,
+    clearTransactions,
     getProfile,
     addTransaction,
     deleteTransaction,
