@@ -8,11 +8,17 @@ const STORAGE_KEY = 'splittab_data';
 function loadLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        profiles: parsed.profiles || [],
+        groups: parsed.groups || [],
+      };
+    }
   } catch (err) {
     console.warn('Could not load local SplitTab data:', err);
   }
-  return { profiles: [] };
+  return { profiles: [], groups: [] };
 }
 function saveLocal(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -101,8 +107,8 @@ export function useStore() {
 
   // ── Persist local data ────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!isCloud) saveLocal(localData);
-  }, [localData, isCloud]);
+    saveLocal(localData);
+  }, [localData]);
 
   // ─── Auth actions ─────────────────────────────────────────────────────────────
   const loginWithGoogle = async () => {
@@ -147,8 +153,7 @@ export function useStore() {
         }
       }
       // Clear local data after successful migration
-      setLocalData({ profiles: [] });
-      localStorage.removeItem(STORAGE_KEY);
+      setLocalData(d => ({ ...d, profiles: [] }));
       await fetchCloud();
     } catch (err) {
       console.error('Migration failed:', err.message);
@@ -230,6 +235,145 @@ export function useStore() {
 
   const getProfile = (profileId) =>
     (isCloud ? cloudProfiles : localData.profiles).find(p => p.id === profileId);
+
+  // ─── Group CRUD ──────────────────────────────────────────────────────────────
+  const addGroup = ({ name, emoji = '👥', members }) => {
+    const now = new Date().toISOString();
+    const cleanMembers = members
+      .map(member => ({
+        id: crypto.randomUUID(),
+        name: member.name.trim(),
+        emoji: member.emoji || '👤',
+      }))
+      .filter(member => member.name);
+
+    const group = {
+      id: crypto.randomUUID(),
+      name: name.trim(),
+      emoji,
+      members: cleanMembers,
+      expenses: [],
+      createdAt: now,
+    };
+
+    setLocalData(d => ({ ...d, groups: [...(d.groups || []), group] }));
+    return group.id;
+  };
+
+  const deleteGroup = (groupId) => {
+    setLocalData(d => ({
+      ...d,
+      groups: (d.groups || []).filter(group => group.id !== groupId),
+    }));
+  };
+
+  const getGroup = (groupId) =>
+    (localData.groups || []).find(group => group.id === groupId);
+
+  const addGroupExpense = (groupId, {
+    title,
+    amount,
+    paidByMemberId,
+    participantIds,
+    date,
+    note = '',
+  }) => {
+    const txDate = date || new Date().toISOString().split('T')[0];
+    const parsedAmount = parseFloat(amount);
+    const expense = {
+      id: crypto.randomUUID(),
+      title: title.trim(),
+      amount: parsedAmount,
+      paidByMemberId,
+      participantIds,
+      splitType: 'equal',
+      note,
+      date: txDate,
+      createdAt: new Date().toISOString(),
+    };
+
+    setLocalData(d => ({
+      ...d,
+      groups: (d.groups || []).map(group =>
+        group.id === groupId
+          ? { ...group, expenses: [...group.expenses, expense] }
+          : group
+      ),
+    }));
+  };
+
+  const deleteGroupExpense = (groupId, expenseId) => {
+    setLocalData(d => ({
+      ...d,
+      groups: (d.groups || []).map(group =>
+        group.id === groupId
+          ? { ...group, expenses: group.expenses.filter(expense => expense.id !== expenseId) }
+          : group
+      ),
+    }));
+  };
+
+  const getGroupBalances = (groupId) => {
+    const group = getGroup(groupId);
+    if (!group) return {};
+
+    const balances = Object.fromEntries(group.members.map(member => [member.id, 0]));
+
+    group.expenses.forEach(expense => {
+      const participants = expense.participantIds?.length
+        ? expense.participantIds
+        : group.members.map(member => member.id);
+      const share = expense.amount / participants.length;
+
+      balances[expense.paidByMemberId] = (balances[expense.paidByMemberId] || 0) + expense.amount;
+      participants.forEach(memberId => {
+        balances[memberId] = (balances[memberId] || 0) - share;
+      });
+    });
+
+    return balances;
+  };
+
+  const getGroupSettlements = (groupId) => {
+    const group = getGroup(groupId);
+    if (!group) return [];
+
+    const balances = getGroupBalances(groupId);
+    const byMemberId = Object.fromEntries(group.members.map(member => [member.id, member]));
+    const debtors = [];
+    const creditors = [];
+
+    Object.entries(balances).forEach(([memberId, balance]) => {
+      const rounded = Math.round(balance * 100) / 100;
+      if (rounded < -0.01) debtors.push({ memberId, amount: Math.abs(rounded) });
+      if (rounded > 0.01) creditors.push({ memberId, amount: rounded });
+    });
+
+    const settlements = [];
+    let debtorIndex = 0;
+    let creditorIndex = 0;
+
+    while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
+      const debtor = debtors[debtorIndex];
+      const creditor = creditors[creditorIndex];
+      const amount = Math.min(debtor.amount, creditor.amount);
+
+      settlements.push({
+        fromMemberId: debtor.memberId,
+        fromName: byMemberId[debtor.memberId]?.name || 'Someone',
+        toMemberId: creditor.memberId,
+        toName: byMemberId[creditor.memberId]?.name || 'Someone',
+        amount,
+      });
+
+      debtor.amount = Math.round((debtor.amount - amount) * 100) / 100;
+      creditor.amount = Math.round((creditor.amount - amount) * 100) / 100;
+      if (debtor.amount <= 0.01) debtorIndex += 1;
+      if (creditor.amount <= 0.01) creditorIndex += 1;
+    }
+
+    return settlements;
+  };
 
   // ─── Transaction CRUD ─────────────────────────────────────────────────────────
   const addTransaction = async (profileId, { amount, note = '', direction, date }) => {
@@ -330,6 +474,7 @@ export function useStore() {
   return {
     // Data
     profiles: isCloud ? cloudProfiles : localData.profiles,
+    groups: localData.groups || [],
     localProfileCount: localData.profiles.length,
     // Auth state
     session,
@@ -348,6 +493,13 @@ export function useStore() {
     updateProfile,
     clearTransactions,
     getProfile,
+    addGroup,
+    deleteGroup,
+    getGroup,
+    addGroupExpense,
+    deleteGroupExpense,
+    getGroupBalances,
+    getGroupSettlements,
     addTransaction,
     updateTransaction,
     deleteTransaction,

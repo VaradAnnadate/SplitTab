@@ -141,7 +141,7 @@ export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
                 profileName={profile.name}
                 onEdit={() => setEditingTx(tx)}
                 onDelete={() => deleteTransaction(profileId, tx.id)}
-                style={{ animationDelay: `${i * 0.04}s` }}
+                style={{ animationDelay: `${i * 0.02}s` }}
               />
             ))}
           </div>

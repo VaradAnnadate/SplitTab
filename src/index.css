@@ -91,7 +91,7 @@ body {
   display: flex;
   flex-direction: column;
   padding-top: calc(var(--safe-top) + 16px);
-  padding-bottom: calc(var(--safe-bottom) + 100px);
+  padding-bottom: calc(var(--safe-bottom) + 132px);
 }
 
 .page-header {
@@ -175,7 +175,7 @@ body {
 /* --- FAB --- */
 .fab {
   position: fixed;
-  bottom: calc(var(--safe-bottom) + 24px);
+  bottom: calc(var(--safe-bottom) + 88px);
   right: 24px;
   width: 56px;
   height: 56px;
@@ -269,6 +269,12 @@ body {
   font-weight: 400;
 }
 
+.textarea-input {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.35;
+}
+
 /* --- Toggle Picker --- */
 .toggle-group {
   display: grid;
@@ -356,18 +362,55 @@ body {
   to { opacity: 1; }
 }
 
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
 
-@keyframes slideIn {
-  from { transform: translateX(-10px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+@keyframes listItemEnter {
+  from {
+    opacity: 0;
+    transform: translateY(7px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .animate-in {
-  animation: slideIn 0.2s ease forwards;
+  animation: listItemEnter 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  will-change: opacity, transform;
+}
+
+.page {
+  animation: pageEnter 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
 /* --- Back Button --- */

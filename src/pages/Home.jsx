@@ -185,7 +185,7 @@ export default function Home({ store, onSelectProfile }) {
                 onClick={() => onSelectProfile(profile.id)}
                 onDelete={() => deleteProfile(profile.id)}
                 onEdit={() => setEditingProfile(profile)}
-                style={{ animationDelay: `${i * 0.05}s` }}
+                style={{ animationDelay: `${i * 0.025}s` }}
               />
             ))}
           </div>

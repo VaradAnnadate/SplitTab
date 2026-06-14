@@ -4,15 +4,19 @@ import { useStore } from './useStore';
 import Home from './pages/Home';
 import ProfileDetail from './pages/ProfileDetail';
 import InvoiceView from './pages/InvoiceView';
+import GroupsHome from './pages/GroupsHome';
+import GroupDetail from './pages/GroupDetail';
+import TabBar from './components/TabBar';
 
 export default function App() {
   const store = useStore();
-  const [view, setView] = useState({ name: 'home' });
+  const [view, setView] = useState({ section: 'friends', name: 'home' });
   const [showSyncPrompt, setShowSyncPrompt] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
-  const navigate = (name, params = {}) => setView({ name, ...params });
-  const goHome = () => setView({ name: 'home' });
+  const navigate = (section, name, params = {}) => setView({ section, name, ...params });
+  const goHome = () => setView({ section: 'friends', name: 'home' });
+  const goGroupsHome = () => setView({ section: 'groups', name: 'home' });
 
   const { session, localProfileCount, importLocalToCloud, authLoading, dataLoading } = store;
 
@@ -35,32 +39,54 @@ export default function App() {
   };
 
   // ── Views ──────────────────────────────────────────────────────────────────────
-  if (view.name === 'profile') {
+  if (view.section === 'friends' && view.name === 'profile') {
     return (
       <ProfileDetail
         profileId={view.profileId}
         store={store}
         onBack={goHome}
-        onInvoice={(profileId) => navigate('invoice', { profileId })}
+        onInvoice={(profileId) => navigate('friends', 'invoice', { profileId })}
       />
     );
   }
 
-  if (view.name === 'invoice') {
+  if (view.section === 'friends' && view.name === 'invoice') {
     return (
       <InvoiceView
         profileId={view.profileId}
         store={store}
-        onBack={() => navigate('profile', { profileId: view.profileId })}
+        onBack={() => navigate('friends', 'profile', { profileId: view.profileId })}
+      />
+    );
+  }
+
+  if (view.section === 'groups' && view.name === 'detail') {
+    return (
+      <GroupDetail
+        groupId={view.groupId}
+        store={store}
+        onBack={goGroupsHome}
       />
     );
   }
 
   return (
     <>
-      <Home
-        store={store}
-        onSelectProfile={(profileId) => navigate('profile', { profileId })}
+      {view.section === 'groups' ? (
+        <GroupsHome
+          store={store}
+          onSelectGroup={(groupId) => navigate('groups', 'detail', { groupId })}
+        />
+      ) : (
+        <Home
+          store={store}
+          onSelectProfile={(profileId) => navigate('friends', 'profile', { profileId })}
+        />
+      )}
+
+      <TabBar
+        active={view.section}
+        onChange={(section) => navigate(section, 'home')}
       />
 
       {/* ── Sync prompt after first sign-in ── */}
