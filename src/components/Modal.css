@@ -63,3 +63,27 @@
   flex: 1;
   font-size: 1.2rem !important;
 }
+
+.tx-preview {
+  margin: -2px 0 18px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+}
+
+.tx-preview--positive {
+  color: var(--green);
+  background: var(--green-light);
+  border-color: rgba(26, 122, 74, 0.22);
+}
+
+.tx-preview--negative {
+  color: var(--red);
+  background: var(--red-light);
+  border-color: rgba(192, 57, 43, 0.22);
+}

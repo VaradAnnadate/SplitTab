@@ -99,7 +99,16 @@
 }
 
 .profile-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
   margin-bottom: 8px;
+}
+
+.profile-actions .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
 }
 
 /* Right side of section header — count badge + clear button */

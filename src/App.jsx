@@ -19,10 +19,13 @@ export default function App() {
   // After Google OAuth redirect, the session will become active.
   // If the user has local data, show the sync prompt.
   useEffect(() => {
-    if (session && localProfileCount > 0) {
-      setShowSyncPrompt(true);
-    }
-  }, [session]);
+    const timer = window.setTimeout(() => {
+      if (session && localProfileCount > 0) {
+        setShowSyncPrompt(true);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [session, localProfileCount]);
 
   const handleSync = async () => {
     setSyncing(true);

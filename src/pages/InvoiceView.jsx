@@ -18,14 +18,6 @@ function formatDate(dateStr) {
   });
 }
 
-function formatDateLong(dateStr) {
-  return new Date(dateStr).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
-
 export default function InvoiceView({ profileId, store, onBack }) {
   const exportRef = useRef(null);
   const [exporting, setExporting] = useState(false);
@@ -168,5 +160,4 @@ export default function InvoiceView({ profileId, store, onBack }) {
     </div>
   );
 }
-
 

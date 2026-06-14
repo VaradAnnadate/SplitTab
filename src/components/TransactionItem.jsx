@@ -1,5 +1,4 @@
 // TransactionItem.jsx — Single transaction row
-import { useState } from 'react';
 import './TransactionItem.css';
 
 function formatCurrency(amount) {
@@ -17,7 +16,7 @@ function formatDate(dateStr) {
   });
 }
 
-export default function TransactionItem({ tx, profileName, onDelete, style }) {
+export default function TransactionItem({ tx, profileName, onEdit, onDelete, style }) {
   const isPaid = tx.direction === 'i_paid';
 
   return (
@@ -41,8 +40,16 @@ export default function TransactionItem({ tx, profileName, onDelete, style }) {
           {isPaid ? '+' : '−'}{formatCurrency(tx.amount)}
         </span>
         <button
+          id={`edit-tx-${tx.id}`}
+          className="tx-action-btn"
+          onClick={onEdit}
+          aria-label="Edit transaction"
+        >
+          ✎
+        </button>
+        <button
           id={`delete-tx-${tx.id}`}
-          className="tx-delete-btn"
+          className="tx-action-btn tx-delete-btn"
           onClick={() => {
             if (window.confirm('Delete this transaction?')) onDelete();
           }}

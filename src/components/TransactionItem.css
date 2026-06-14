@@ -73,7 +73,7 @@
 .tx-item-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -86,12 +86,12 @@
 .amount-green { color: var(--green); }
 .amount-red { color: var(--red); }
 
-.tx-delete-btn {
+.tx-action-btn {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--text-muted);
-  font-size: 1.2rem;
+  font-size: 1rem;
   line-height: 1;
   width: 28px;
   height: 28px;
@@ -101,6 +101,15 @@
   border-radius: 50%;
   transition: background 0.12s ease, color 0.12s ease;
   -webkit-tap-highlight-color: transparent;
+}
+
+.tx-action-btn:active {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+
+.tx-delete-btn {
+  font-size: 1.2rem;
 }
 
 .tx-delete-btn:active {

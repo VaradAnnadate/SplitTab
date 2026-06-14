@@ -1,18 +1,39 @@
-// AddTransactionModal.jsx — Bottom sheet to log a transaction
+// AddTransactionModal.jsx — Bottom sheet to log or edit a transaction
 import { useState } from 'react';
 import './Modal.css';
 
-export default function AddTransactionModal({ profileName, onAdd, onClose }) {
-  const [amount, setAmount] = useState('');
-  const [note, setNote] = useState('');
-  const [direction, setDirection] = useState('i_paid'); // 'i_paid' | 'they_paid'
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2,
+  }).format(Math.abs(amount));
+}
+
+export default function AddTransactionModal({
+  profileName,
+  onAdd,
+  onClose,
+  initialTransaction = null,
+}) {
+  const isEditing = !!initialTransaction;
+  const [amount, setAmount] = useState(initialTransaction?.amount?.toString() || '');
+  const [note, setNote] = useState(initialTransaction?.note || '');
+  const [direction, setDirection] = useState(initialTransaction?.direction || 'i_paid'); // 'i_paid' | 'they_paid'
+  const [date, setDate] = useState(initialTransaction?.date || new Date().toISOString().split('T')[0]);
+
+  const parsedAmount = parseFloat(amount);
+  const hasValidAmount = parsedAmount > 0;
+  const previewText = !hasValidAmount
+    ? 'Enter an amount to preview the balance effect.'
+    : direction === 'i_paid'
+    ? `${profileName} will owe you ${formatCurrency(parsedAmount)} more.`
+    : `Your balance with ${profileName} will reduce by ${formatCurrency(parsedAmount)}.`;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const parsed = parseFloat(amount);
-    if (!parsed || parsed <= 0) return;
-    onAdd({ amount: parsed, note: note.trim(), direction, date });
+    if (!hasValidAmount) return;
+    onAdd({ amount: parsedAmount, note: note.trim(), direction, date });
   };
 
   return (
@@ -20,7 +41,7 @@ export default function AddTransactionModal({ profileName, onAdd, onClose }) {
       <div className="modal-sheet" onClick={e => e.stopPropagation()}>
         <div className="modal-handle" />
 
-        <h2 className="modal-title">Add Transaction</h2>
+        <h2 className="modal-title">{isEditing ? 'Edit Transaction' : 'Add Transaction'}</h2>
         <p className="modal-subtitle">With {profileName}</p>
 
         <form onSubmit={handleSubmit} className="modal-form">
@@ -92,13 +113,17 @@ export default function AddTransactionModal({ profileName, onAdd, onClose }) {
             />
           </div>
 
+          <div className={`tx-preview ${direction === 'i_paid' ? 'tx-preview--positive' : 'tx-preview--negative'}`}>
+            {previewText}
+          </div>
+
           <button
             id="save-transaction-btn"
             type="submit"
             className="btn btn-primary btn-full"
-            disabled={!amount || parseFloat(amount) <= 0}
+            disabled={!hasValidAmount}
           >
-            Save Transaction
+            {isEditing ? 'Save Changes' : 'Save Transaction'}
           </button>
         </form>
       </div>

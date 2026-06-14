@@ -5,6 +5,14 @@ import EditProfileModal from '../components/EditProfileModal';
 import ProfileCard from '../components/ProfileCard';
 import './Home.css';
 
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(Math.abs(amount));
+}
+
 export default function Home({ store, onSelectProfile }) {
   const [showAddProfile, setShowAddProfile] = useState(false);
   const [editingProfile, setEditingProfile] = useState(null); // profile object to edit
@@ -49,6 +57,17 @@ export default function Home({ store, onSelectProfile }) {
     setShowUserMenu(false);
     await logout();
   };
+
+  const summary = profiles.reduce(
+    (acc, profile) => {
+      const balance = getBalance(profile.id);
+      if (balance > 0) acc.owed += balance;
+      if (balance < 0) acc.owe += Math.abs(balance);
+      acc.net += balance;
+      return acc;
+    },
+    { owed: 0, owe: 0, net: 0 }
+  );
 
   // Auth slot — rendered inline with the heading
   const authSlot = isConfigured ? (
@@ -127,6 +146,26 @@ export default function Home({ store, onSelectProfile }) {
             ? 'Add a friend to get started'
             : `${profiles.length} friend${profiles.length !== 1 ? 's' : ''}`}
         </p>
+        {profiles.length > 0 && (
+          <div className="home-summary">
+            <div className="summary-main">
+              <p className="summary-label">Net Balance</p>
+              <p className={`summary-amount ${summary.net >= 0 ? 'summary-positive' : 'summary-negative'}`}>
+                {summary.net >= 0 ? '+' : '−'}{formatCurrency(summary.net)}
+              </p>
+            </div>
+            <div className="summary-grid">
+              <div className="summary-pill">
+                <span>You are owed</span>
+                <strong>{formatCurrency(summary.owed)}</strong>
+              </div>
+              <div className="summary-pill">
+                <span>You owe</span>
+                <strong>{formatCurrency(summary.owe)}</strong>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Profile list ─────────────────────────────── */}
@@ -184,7 +223,7 @@ export default function Home({ store, onSelectProfile }) {
       {/* ── Footer ───────────────────────────────── */}
       <footer className="home-footer">
         <p>Made by <span className="home-footer-name">Varad Annadate</span></p>
-        <p className="home-footer-version">Version 3.2</p>
+        <p className="home-footer-version">Version 3.3: Settle Smart</p>
       </footer>
 
     </div>

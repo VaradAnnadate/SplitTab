@@ -9,7 +9,9 @@ function loadLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (_) {}
+  } catch (err) {
+    console.warn('Could not load local SplitTab data:', err);
+  }
   return { profiles: [] };
 }
 function saveLocal(data) {
@@ -40,7 +42,7 @@ function mapTx(t) {
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 export function useStore() {
   const [session, setSession] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);  // waiting for Supabase auth check
+  const [authLoading, setAuthLoading] = useState(() => !!supabase);  // waiting for Supabase auth check
   const [dataLoading, setDataLoading] = useState(false);
 
   const [localData, setLocalData] = useState(loadLocal);
@@ -51,7 +53,6 @@ export function useStore() {
   // ── Auth listener ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!supabase) {
-      setAuthLoading(false);
       return;
     }
     // Get initial session
@@ -88,11 +89,14 @@ export function useStore() {
   }, [session]);
 
   useEffect(() => {
-    if (session) {
-      fetchCloud();
-    } else {
-      setCloudProfiles([]);
-    }
+    const timer = window.setTimeout(() => {
+      if (session) {
+        fetchCloud();
+      } else {
+        setCloudProfiles([]);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [session, fetchCloud]);
 
   // ── Persist local data ────────────────────────────────────────────────────────
@@ -230,10 +234,11 @@ export function useStore() {
   // ─── Transaction CRUD ─────────────────────────────────────────────────────────
   const addTransaction = async (profileId, { amount, note = '', direction, date }) => {
     const txDate = date || new Date().toISOString().split('T')[0];
+    const parsedAmount = parseFloat(amount);
     if (isCloud) {
       const { data, error } = await supabase
         .from('transactions')
-        .insert([{ profile_id: profileId, amount: parseFloat(amount), note, direction, date: txDate }])
+        .insert([{ profile_id: profileId, amount: parsedAmount, note, direction, date: txDate }])
         .select()
         .single();
       if (error) { alert('Error: ' + error.message); return; }
@@ -244,7 +249,7 @@ export function useStore() {
     } else {
       const tx = {
         id: crypto.randomUUID(),
-        amount: parseFloat(amount),
+        amount: parsedAmount,
         note,
         direction,
         date: txDate,
@@ -254,6 +259,42 @@ export function useStore() {
         ...d,
         profiles: d.profiles.map(p =>
           p.id === profileId ? { ...p, transactions: [...p.transactions, tx] } : p
+        ),
+      }));
+    }
+  };
+
+  const updateTransaction = async (profileId, txId, { amount, note = '', direction, date }) => {
+    const txDate = date || new Date().toISOString().split('T')[0];
+    const parsedAmount = parseFloat(amount);
+    const updates = { amount: parsedAmount, note, direction, date: txDate };
+
+    if (isCloud) {
+      const { data, error } = await supabase
+        .from('transactions')
+        .update(updates)
+        .eq('id', txId)
+        .select()
+        .single();
+      if (error) { alert('Error: ' + error.message); return; }
+      const updatedTx = mapTx(data);
+      setCloudProfiles(prev => prev.map(p =>
+        p.id === profileId
+          ? { ...p, transactions: p.transactions.map(t => t.id === txId ? updatedTx : t) }
+          : p
+      ));
+    } else {
+      setLocalData(d => ({
+        ...d,
+        profiles: d.profiles.map(p =>
+          p.id === profileId
+            ? {
+                ...p,
+                transactions: p.transactions.map(t =>
+                  t.id === txId ? { ...t, ...updates } : t
+                ),
+              }
+            : p
         ),
       }));
     }
@@ -308,6 +349,7 @@ export function useStore() {
     clearTransactions,
     getProfile,
     addTransaction,
+    updateTransaction,
     deleteTransaction,
     getBalance,
   };

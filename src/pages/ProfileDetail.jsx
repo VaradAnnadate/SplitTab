@@ -14,7 +14,15 @@ function formatCurrency(amount) {
 
 export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
   const [showAddTx, setShowAddTx] = useState(false);
-  const { getProfile, addTransaction, deleteTransaction, clearTransactions, getBalance } = store;
+  const [editingTx, setEditingTx] = useState(null);
+  const {
+    getProfile,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    clearTransactions,
+    getBalance,
+  } = store;
 
   const profile = getProfile(profileId);
   if (!profile) return null;
@@ -33,6 +41,24 @@ export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
 
   const balanceClass =
     balance > 0 ? 'positive' : balance < 0 ? 'negative' : 'settled';
+
+  const handleSettleUp = () => {
+    if (balance === 0) return;
+    const amount = Math.abs(balance);
+    const direction = balance > 0 ? 'they_paid' : 'i_paid';
+    const message = balance > 0
+      ? `Record that ${profile.name} paid you ${formatCurrency(amount)}?`
+      : `Record that you paid ${profile.name} ${formatCurrency(amount)}?`;
+
+    if (window.confirm(message)) {
+      addTransaction(profileId, {
+        amount,
+        direction,
+        note: 'Settlement',
+        date: new Date().toISOString().split('T')[0],
+      });
+    }
+  };
 
   return (
     <div className="page profile-page">
@@ -67,6 +93,14 @@ export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
             onClick={() => onInvoice(profileId)}
           >
             📄 Generate Invoice
+          </button>
+          <button
+            id="settle-up-btn"
+            className="btn btn-primary btn-full"
+            onClick={handleSettleUp}
+            disabled={balance === 0}
+          >
+            Settle Up
           </button>
         </div>
       </div>
@@ -105,6 +139,7 @@ export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
                 key={tx.id}
                 tx={tx}
                 profileName={profile.name}
+                onEdit={() => setEditingTx(tx)}
                 onDelete={() => deleteTransaction(profileId, tx.id)}
                 style={{ animationDelay: `${i * 0.04}s` }}
               />
@@ -131,6 +166,18 @@ export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
             setShowAddTx(false);
           }}
           onClose={() => setShowAddTx(false)}
+        />
+      )}
+
+      {editingTx && (
+        <AddTransactionModal
+          profileName={profile.name}
+          initialTransaction={editingTx}
+          onAdd={(tx) => {
+            updateTransaction(profileId, editingTx.id, tx);
+            setEditingTx(null);
+          }}
+          onClose={() => setEditingTx(null)}
         />
       )}
     </div>

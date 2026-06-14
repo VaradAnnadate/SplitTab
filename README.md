@@ -1,41 +1,60 @@
-# SplitTab 💸
+# SplitTab
 
-**Track shared expenses with friends. Generate beautiful invoices. Split bills effortlessly.**
+SplitTab is a clean, mobile-first expense tracker for shared spending with friends. Add people, record who paid, see the running balance, settle up, and share a polished invoice image when it is time to collect or pay back.
 
-SplitTab is a minimalist PWA (Progressive Web App) for tracking who owes who. Add friends, log transactions, and share a clean image invoice — no sign-up required. Sign in with Google to sync your data across all your devices.
+It works without an account using local storage, and can sync across devices with Google sign-in and Supabase.
 
 > Made by **Varad Annadate**
 
----
+## Current Release
 
-## Features
+**Version 3.3: Settle Smart**
 
-- **👤 Friend Profiles** — Create a profile for each friend you split expenses with
-- **💳 Transaction Logging** — Record "I paid for them" or "They paid for me" with a note and date
-- **📊 Live Balance** — See at a glance who owes who and how much
-- **🖼 Image Invoice** — Generate a shareable PNG invoice card (perfect for iMessage, WhatsApp)
-- **☁️ Cloud Sync** — Sign in with Google to sync all data to Supabase across devices
-- **📱 Works Offline** — No login needed; all data saved locally until you choose to sync
-- **📲 iOS Home Screen** — Add to iPhone home screen for a native app-like experience
+This release focuses on making balances easier to understand and close:
 
----
+- Home summary for net balance, total owed to you, and total you owe
+- Transaction editing
+- Settle-up action for clearing a balance
+- Live transaction preview before saving
+- Cleaner lint/build health
+
+## Highlights
+
+- **Friend profiles**: Create a separate split ledger for each friend.
+- **Fast transaction logging**: Record whether you paid for them or they paid for you.
+- **Clear balances**: See who owes whom at a glance.
+- **Settle up**: Add a settlement transaction when a balance is paid back.
+- **Editable history**: Fix transaction amounts, notes, dates, or direction after saving.
+- **Shareable invoice image**: Generate a clean PNG bill summary for WhatsApp, iMessage, or any chat app.
+- **Offline-first**: Use the app without signing in.
+- **Cloud sync**: Sign in with Google to store data in Supabase.
+- **PWA-ready**: Install it on a phone home screen for an app-like experience.
+
+## Why SplitTab?
+
+Most expense apps are either too heavy for quick personal splits or too simple to trust when money is involved. SplitTab sits in the middle: it keeps the daily flow light, but still gives you summaries, editable records, settlement tracking, and a shareable invoice when you need proof.
 
 ## Tech Stack
 
-| Layer | Tech |
-|---|---|
-| Frontend | React 19 + Vite |
-| Styling | Vanilla CSS (Weekstack-inspired design) |
-| Auth | Supabase Auth (Google OAuth) |
-| Database | Supabase (PostgreSQL + Row Level Security) |
-| Image Export | html-to-image |
-| PWA | Web App Manifest + iOS meta tags |
-
----
+| Area | Technology |
+| --- | --- |
+| Frontend | React 19, Vite |
+| Styling | Vanilla CSS |
+| State | React hooks, localStorage |
+| Auth | Supabase Auth with Google OAuth |
+| Database | Supabase Postgres with Row Level Security |
+| Export | html-to-image |
+| App install | Web App Manifest, iOS home screen support |
 
 ## Getting Started
 
-### 1. Clone the repo
+### Prerequisites
+
+- Node.js
+- npm
+- Optional: a Supabase project for cloud sync
+
+### Install
 
 ```bash
 git clone https://github.com/VaradAnnadate/SplitTab.git
@@ -43,28 +62,40 @@ cd SplitTab
 npm install
 ```
 
-### 2. Set up Supabase
+### Run locally
 
-1. Create a free project at [supabase.com](https://supabase.com)
-2. Go to **Settings → API** and copy your **Project URL** and **anon key**
-3. Create a `.env` file based on the template:
+```bash
+npm run dev
+```
+
+Open the local Vite URL shown in your terminal, usually:
+
+```text
+http://localhost:5173
+```
+
+The app works locally even without Supabase credentials.
+
+## Optional Cloud Sync Setup
+
+Create a `.env` file from the example:
 
 ```bash
 cp .env.example .env
-# then fill in your values
 ```
+
+Add your Supabase project values:
 
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key_here
 ```
 
-### 3. Create database tables
+### Database Tables
 
-Run this in your Supabase **SQL Editor**:
+Run this SQL in the Supabase SQL Editor:
 
 ```sql
--- Profiles table
 create table public.profiles (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users on delete cascade not null,
@@ -72,11 +103,14 @@ create table public.profiles (
   emoji text default '👤' not null,
   created_at timestamptz default now() not null
 );
-alter table public.profiles enable row level security;
-create policy "Own profiles only" on public.profiles
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- Transactions table
+alter table public.profiles enable row level security;
+
+create policy "Own profiles only" on public.profiles
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
 create table public.transactions (
   id uuid default gen_random_uuid() primary key,
   profile_id uuid references public.profiles on delete cascade not null,
@@ -86,9 +120,12 @@ create table public.transactions (
   date date default current_date not null,
   created_at timestamptz default now() not null
 );
+
 alter table public.transactions enable row level security;
+
 create policy "Own transactions only" on public.transactions
-  for all using (
+  for all
+  using (
     exists (
       select 1 from public.profiles
       where profiles.id = transactions.profile_id
@@ -104,66 +141,69 @@ create policy "Own transactions only" on public.transactions
   );
 ```
 
-### 4. Enable Google Sign-In
+### Google Sign-In
 
-1. In Supabase → **Authentication → Providers → Google** → toggle **On**
-2. Go to [console.cloud.google.com](https://console.cloud.google.com) and create an OAuth 2.0 Client ID
-3. Add this as an **Authorized redirect URI**:
-   ```
-   https://your-project-id.supabase.co/auth/v1/callback
-   ```
-4. Paste the Client ID and Secret into the Supabase Google provider settings
+1. In Supabase, open **Authentication > Providers > Google**.
+2. Enable Google as a provider.
+3. Create an OAuth client in Google Cloud Console.
+4. Add this redirect URI:
 
-### 5. Run locally
+```text
+https://your-project-id.supabase.co/auth/v1/callback
+```
+
+5. Paste the Google client ID and secret into Supabase.
+
+## Scripts
 
 ```bash
 npm run dev
+npm run build
+npm run lint
+npm run preview
 ```
-
-Open [http://localhost:5173](http://localhost:5173)
-
----
-
-## Add to iPhone Home Screen
-
-1. Open the app in **Safari** on your iPhone
-2. Tap the **Share** button (box with arrow)
-3. Tap **Add to Home Screen**
-4. Done — it runs like a native app!
-
----
 
 ## Project Structure
 
-```
+```text
 src/
-├── pages/
-│   ├── Home.jsx          # Friend list + Google sign-in
-│   ├── ProfileDetail.jsx # Transaction history per friend
-│   └── InvoiceView.jsx   # Invoice card + image export
-├── components/
-│   ├── ProfileCard.jsx
-│   ├── TransactionItem.jsx
-│   ├── AddProfileModal.jsx
-│   └── AddTransactionModal.jsx
-├── useStore.js           # Dual-mode state (localStorage ↔ Supabase)
-├── supabaseClient.js     # Supabase client initialisation
-└── index.css             # Global design system
+  components/
+    AddProfileModal.jsx
+    AddTransactionModal.jsx
+    EditProfileModal.jsx
+    ProfileCard.jsx
+    TransactionItem.jsx
+  pages/
+    Home.jsx
+    ProfileDetail.jsx
+    InvoiceView.jsx
+  App.jsx
+  main.jsx
+  supabaseClient.js
+  useStore.js
 ```
 
----
+## Data Model
 
-## Environment Variables
+SplitTab stores profiles and transactions. A transaction has:
 
-| Variable | Description |
-|---|---|
-| `VITE_SUPABASE_URL` | Your Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Your Supabase public anon key |
+- `amount`: the expense or settlement amount
+- `direction`: `i_paid` or `they_paid`
+- `note`: optional label such as Dinner, Tickets, or Settlement
+- `date`: transaction date
 
-> ⚠️ Never commit your `.env` file. It is listed in `.gitignore`. Use `.env.example` as the template.
+Balances are calculated from transaction direction:
 
----
+- `i_paid` increases what the friend owes you
+- `they_paid` reduces the balance or means you owe them
+
+## Install On iPhone
+
+1. Open SplitTab in Safari.
+2. Tap the Share button.
+3. Choose **Add to Home Screen**.
+4. Launch SplitTab like a normal app.
 
 ## License
 
-MIT — free to use and modify.
+MIT
