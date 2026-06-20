@@ -102,9 +102,8 @@ export default function GroupsHome({ store, onSelectGroup }) {
       {showAddGroup && (
         <AddGroupModal
           onAdd={async (group) => {
-            const groupId = await addGroup(group);
+            await addGroup(group);
             setShowAddGroup(false);
-            if (groupId) onSelectGroup(groupId);
           }}
           onClose={() => setShowAddGroup(false)}
         />

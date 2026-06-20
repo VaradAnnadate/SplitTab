@@ -177,8 +177,8 @@ export default function GroupDetail({ groupId, store, onBack }) {
       {showAddExpense && (
         <AddGroupExpenseModal
           group={group}
-          onAdd={(expense) => {
-            addGroupExpense(groupId, expense);
+          onAdd={async (expense) => {
+            await addGroupExpense(groupId, expense);
             setShowAddExpense(false);
           }}
           onClose={() => setShowAddExpense(false)}
