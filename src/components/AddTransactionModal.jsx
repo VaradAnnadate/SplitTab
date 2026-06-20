@@ -72,6 +72,21 @@ export default function AddTransactionModal({
             </div>
           </div>
 
+          {/* Note / Title */}
+          <div className="form-group">
+            <label className="form-label" htmlFor="tx-note">Title</label>
+            <input
+              id="tx-note"
+              className="form-input"
+              type="text"
+              placeholder="e.g. Dinner, Movie tickets..."
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              maxLength={60}
+              autoFocus
+            />
+          </div>
+
           {/* Amount */}
           <div className="form-group">
             <label className="form-label" htmlFor="tx-amount">Amount (₹)</label>
@@ -85,21 +100,6 @@ export default function AddTransactionModal({
               onChange={e => setAmount(e.target.value)}
               min="0.01"
               step="0.01"
-              autoFocus
-            />
-          </div>
-
-          {/* Note */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="tx-note">Note (optional)</label>
-            <input
-              id="tx-note"
-              className="form-input"
-              type="text"
-              placeholder="e.g. Dinner, Movie tickets..."
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              maxLength={60}
             />
           </div>
 
