@@ -102,7 +102,8 @@ export default function GroupsHome({ store, onSelectGroup }) {
       {showAddGroup && (
         <AddGroupModal
           onAdd={async (group) => {
-            await addGroup(group);
+            const result = await addGroup(group);
+            if (result === undefined) throw new Error('Failed to create group. Check your connection and try again.');
             setShowAddGroup(false);
           }}
           onClose={() => setShowAddGroup(false)}

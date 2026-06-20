@@ -8,24 +8,35 @@ export default function AddGroupModal({ onAdd, onClose }) {
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('👥');
   const [membersText, setMembersText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const members = membersText
     .split('\n')
-    .map(value => value.trim())
+    .map(v => v.trim())
     .filter(Boolean)
-    .map(name => ({ name, emoji: '👤' }));
+    .map(n => ({ name: n, emoji: '👤' }));
 
-  const canSave = name.trim() && members.length >= 2;
+  // Allow at least 1 member (groups can have 1+ people)
+  const canSave = name.trim() && members.length >= 1;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!canSave) return;
-    onAdd({ name: name.trim(), emoji, members });
+    if (!canSave || loading) return;
+    setError('');
+    setLoading(true);
+    try {
+      await onAdd({ name: name.trim(), emoji, members });
+    } catch (err) {
+      console.error('Create group error:', err);
+      setError(err.message || 'Something went wrong. Please try again.');
+      setLoading(false);
+    }
   };
 
   return (
     <ModalPortal>
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={loading ? undefined : onClose}>
       <div className="modal-sheet" onClick={e => e.stopPropagation()}>
         <div className="modal-handle" />
         <h2 className="modal-title">Create Group</h2>
@@ -42,6 +53,7 @@ export default function AddGroupModal({ onAdd, onClose }) {
               placeholder="e.g. Goa Trip"
               maxLength={36}
               autoFocus
+              disabled={loading}
             />
           </div>
 
@@ -54,6 +66,7 @@ export default function AddGroupModal({ onAdd, onClose }) {
                   type="button"
                   className={`emoji-btn ${emoji === value ? 'selected' : ''}`}
                   onClick={() => setEmoji(value)}
+                  disabled={loading}
                 >
                   {value}
                 </button>
@@ -62,7 +75,9 @@ export default function AddGroupModal({ onAdd, onClose }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="group-members">Members</label>
+            <label className="form-label" htmlFor="group-members">
+              Members <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: 'var(--text-muted)' }}>— one name per line</span>
+            </label>
             <textarea
               id="group-members"
               className="form-input textarea-input"
@@ -70,11 +85,22 @@ export default function AddGroupModal({ onAdd, onClose }) {
               onChange={e => setMembersText(e.target.value)}
               placeholder={'Varad\nRohit\nArjun\nAryan'}
               rows={5}
+              disabled={loading}
             />
           </div>
 
-          <button className="btn btn-primary btn-full" disabled={!canSave}>
-            Create Group
+          {error && (
+            <p style={{ color: 'var(--red)', fontSize: '0.82rem', fontWeight: 600, marginBottom: 12 }}>
+              ⚠️ {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-full"
+            disabled={!canSave || loading}
+          >
+            {loading ? 'Creating...' : 'Create Group'}
           </button>
         </form>
       </div>

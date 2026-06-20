@@ -290,7 +290,7 @@ export function useStore() {
         .insert([{ name: name.trim(), emoji, user_id: session.user.id }])
         .select()
         .single();
-      if (ge) { alert('Error: ' + ge.message); return; }
+      if (ge) throw new Error(ge.message);
 
       // 2. Insert members
       let dbMembers = [];
@@ -304,7 +304,7 @@ export function useStore() {
           .from('group_members')
           .insert(memberRows)
           .select();
-        if (me) { alert('Error: ' + me.message); return; }
+        if (me) throw new Error(me.message);
         dbMembers = md || [];
       }
 
