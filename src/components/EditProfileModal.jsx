@@ -1,5 +1,6 @@
 // EditProfileModal.jsx — Bottom sheet to edit name + emoji of existing profile
 import { useState } from 'react';
+import ModalPortal from './ModalPortal';
 import './Modal.css';
 
 const EMOJIS = ['👤','👩','👨','🧑','👩‍💼','👨‍💼','🧑‍💻','👩‍🎤','👨‍🎤','🧑‍🍳','🎅','🧑‍🎓','🦸','🧙','🥷','👻','🐱','🐶','🦊','🐼'];
@@ -35,6 +36,7 @@ export default function EditProfileModal({ profile, onSave, onClose }) {
   };
 
   return (
+    <ModalPortal>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-sheet" onClick={e => e.stopPropagation()}>
         <div className="modal-handle" />
@@ -106,5 +108,6 @@ export default function EditProfileModal({ profile, onSave, onClose }) {
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 }

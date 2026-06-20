@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import TransactionItem from '../components/TransactionItem';
 import AddTransactionModal from '../components/AddTransactionModal';
-import FloatingActionButton from '../components/FloatingActionButton';
 import './ProfileDetail.css';
 
 function formatCurrency(amount) {
@@ -131,7 +130,7 @@ export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
         {sorted.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">🧾</div>
-            <p className="empty-state-text">No transactions yet.<br />Tap + to add one.</p>
+            <p className="empty-state-text">No transactions yet.<br />Add one below.</p>
           </div>
         ) : (
           <div className="tx-list">
@@ -145,15 +144,34 @@ export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
                 style={{ animationDelay: `${i * 0.02}s` }}
               />
             ))}
+            <button
+              id="add-transaction-btn"
+              className="add-list-card animate-in"
+              onClick={() => setShowAddTx(true)}
+              style={{ animationDelay: `${sorted.length * 0.02}s` }}
+            >
+              <span className="add-list-card-icon">+</span>
+              <span>
+                <span className="add-list-card-title">Add Transaction</span>
+                <span className="add-list-card-subtitle">Record who paid and update the balance</span>
+              </span>
+            </button>
           </div>
         )}
+        {sorted.length === 0 && (
+          <button
+            id="add-transaction-btn"
+            className="add-list-card"
+            onClick={() => setShowAddTx(true)}
+          >
+            <span className="add-list-card-icon">+</span>
+            <span>
+              <span className="add-list-card-title">Add First Transaction</span>
+              <span className="add-list-card-subtitle">Record who paid and update the balance</span>
+            </span>
+          </button>
+        )}
       </div>
-
-      <FloatingActionButton
-        id="add-transaction-btn"
-        onClick={() => setShowAddTx(true)}
-        ariaLabel="Add transaction"
-      />
 
       {showAddTx && (
         <AddTransactionModal

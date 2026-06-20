@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ModalPortal from './ModalPortal';
 import './Modal.css';
 
 function formatCurrency(amount) {
@@ -43,6 +44,7 @@ export default function AddGroupExpenseModal({ group, onAdd, onClose }) {
   };
 
   return (
+    <ModalPortal>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-sheet" onClick={e => e.stopPropagation()}>
         <div className="modal-handle" />
@@ -143,5 +145,6 @@ export default function AddGroupExpenseModal({ group, onAdd, onClose }) {
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 }

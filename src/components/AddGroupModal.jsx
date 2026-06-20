@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ModalPortal from './ModalPortal';
 import './Modal.css';
 
 const GROUP_EMOJIS = ['👥', '🏖️', '🏠', '🎉', '🚗', '🍽️', '🎬', '🏕️', '💼', '🎁', '✈️', '🏟️'];
@@ -23,6 +24,7 @@ export default function AddGroupModal({ onAdd, onClose }) {
   };
 
   return (
+    <ModalPortal>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-sheet" onClick={e => e.stopPropagation()}>
         <div className="modal-handle" />
@@ -77,5 +79,6 @@ export default function AddGroupModal({ onAdd, onClose }) {
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 }

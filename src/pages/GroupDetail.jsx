@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import AddGroupExpenseModal from '../components/AddGroupExpenseModal';
-import FloatingActionButton from '../components/FloatingActionButton';
 import './GroupDetail.css';
 
 function formatCurrency(amount) {
@@ -118,7 +117,7 @@ export default function GroupDetail({ groupId, store, onBack }) {
           {sortedExpenses.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">🧾</div>
-              <p className="empty-state-text">No group expenses yet.<br />Tap + to add one.</p>
+              <p className="empty-state-text">No group expenses yet.<br />Add one below.</p>
             </div>
           ) : (
             <div className="group-expense-list">
@@ -146,16 +145,34 @@ export default function GroupDetail({ groupId, store, onBack }) {
                   </div>
                 </div>
               ))}
+              <button
+                id="add-group-expense-btn"
+                className="add-list-card"
+                onClick={() => setShowAddExpense(true)}
+              >
+                <span className="add-list-card-icon">+</span>
+                <span>
+                  <span className="add-list-card-title">Add Group Expense</span>
+                  <span className="add-list-card-subtitle">Split a bill across selected members</span>
+                </span>
+              </button>
             </div>
+          )}
+          {sortedExpenses.length === 0 && (
+            <button
+              id="add-group-expense-btn"
+              className="add-list-card"
+              onClick={() => setShowAddExpense(true)}
+            >
+              <span className="add-list-card-icon">+</span>
+              <span>
+                <span className="add-list-card-title">Add First Expense</span>
+                <span className="add-list-card-subtitle">Split a bill across selected members</span>
+              </span>
+            </button>
           )}
         </div>
       </div>
-
-      <FloatingActionButton
-        id="add-group-expense-btn"
-        onClick={() => setShowAddExpense(true)}
-        ariaLabel="Add group expense"
-      />
 
       {showAddExpense && (
         <AddGroupExpenseModal

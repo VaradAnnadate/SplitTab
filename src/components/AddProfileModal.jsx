@@ -1,5 +1,6 @@
 // AddProfileModal.jsx — Bottom sheet to create a new friend profile
 import { useState, useRef } from 'react';
+import ModalPortal from './ModalPortal';
 import './Modal.css';
 
 const EMOJIS = ['👤', '👩', '👨', '🧑', '👩‍💼', '👨‍💼', '🧑‍💻', '👩‍🎤', '👨‍🎤', '🧑‍🍳', '🎅', '🧑‍🎓', '🦸', '🧙', '🥷', '👻', '🐱', '🐶', '🦊', '🐼'];
@@ -37,6 +38,7 @@ export default function AddProfileModal({ onAdd, onClose }) {
   };
 
   return (
+    <ModalPortal>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-sheet" onClick={e => e.stopPropagation()}>
         <div className="modal-handle" />
@@ -115,5 +117,6 @@ export default function AddProfileModal({ onAdd, onClose }) {
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 }

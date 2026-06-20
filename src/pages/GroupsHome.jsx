@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import AddGroupModal from '../components/AddGroupModal';
-import FloatingActionButton from '../components/FloatingActionButton';
 import GroupCard from '../components/GroupCard';
 import './GroupsHome.css';
 
@@ -56,7 +55,7 @@ export default function GroupsHome({ store, onSelectGroup }) {
         {groups.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">👥</div>
-            <p className="empty-state-text">No groups yet.<br />Tap + to create one.</p>
+            <p className="empty-state-text">No groups yet.<br />Create one below.</p>
           </div>
         ) : (
           <div className="group-list">
@@ -71,15 +70,34 @@ export default function GroupsHome({ store, onSelectGroup }) {
                 style={{ animationDelay: `${i * 0.025}s` }}
               />
             ))}
+            <button
+              id="add-group-btn"
+              className="add-list-card animate-in"
+              onClick={() => setShowAddGroup(true)}
+              style={{ animationDelay: `${groups.length * 0.025}s` }}
+            >
+              <span className="add-list-card-icon">+</span>
+              <span>
+                <span className="add-list-card-title">Create New Group</span>
+                <span className="add-list-card-subtitle">Trips, events, roommates, and shared tabs</span>
+              </span>
+            </button>
           </div>
         )}
+        {groups.length === 0 && (
+          <button
+            id="add-group-btn"
+            className="add-list-card"
+            onClick={() => setShowAddGroup(true)}
+          >
+            <span className="add-list-card-icon">+</span>
+            <span>
+              <span className="add-list-card-title">Create Your First Group</span>
+              <span className="add-list-card-subtitle">Split a trip, event, or shared house</span>
+            </span>
+          </button>
+        )}
       </div>
-
-      <FloatingActionButton
-        id="add-group-btn"
-        onClick={() => setShowAddGroup(true)}
-        ariaLabel="Add group"
-      />
 
       {showAddGroup && (
         <AddGroupModal
@@ -91,6 +109,11 @@ export default function GroupsHome({ store, onSelectGroup }) {
           onClose={() => setShowAddGroup(false)}
         />
       )}
+
+      <footer className="groups-footer">
+        <p>Made by <span className="groups-footer-name">Varad Annadate</span></p>
+        <p className="groups-footer-version">v3.3.1</p>
+      </footer>
     </div>
   );
 }

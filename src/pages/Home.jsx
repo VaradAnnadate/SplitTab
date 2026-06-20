@@ -3,7 +3,6 @@ import { useState, useRef, useEffect } from 'react';
 import AddProfileModal from '../components/AddProfileModal';
 import EditProfileModal from '../components/EditProfileModal';
 import ProfileCard from '../components/ProfileCard';
-import FloatingActionButton from '../components/FloatingActionButton';
 import './Home.css';
 
 function formatCurrency(amount) {
@@ -174,7 +173,7 @@ export default function Home({ store, onSelectProfile }) {
         {profiles.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">🤝</div>
-            <p className="empty-state-text">No friends yet.<br />Tap + to add one.</p>
+            <p className="empty-state-text">No friends yet.<br />Add one below.</p>
           </div>
         ) : (
           <div className="profile-list">
@@ -189,15 +188,34 @@ export default function Home({ store, onSelectProfile }) {
                 style={{ animationDelay: `${i * 0.025}s` }}
               />
             ))}
+            <button
+              id="add-profile-btn"
+              className="add-list-card animate-in"
+              onClick={() => setShowAddProfile(true)}
+              style={{ animationDelay: `${profiles.length * 0.025}s` }}
+            >
+              <span className="add-list-card-icon">+</span>
+              <span>
+                <span className="add-list-card-title">Add New Friend</span>
+                <span className="add-list-card-subtitle">Create another split profile</span>
+              </span>
+            </button>
           </div>
         )}
+        {profiles.length === 0 && (
+          <button
+            id="add-profile-btn"
+            className="add-list-card"
+            onClick={() => setShowAddProfile(true)}
+          >
+            <span className="add-list-card-icon">+</span>
+            <span>
+              <span className="add-list-card-title">Add Your First Friend</span>
+              <span className="add-list-card-subtitle">Start tracking one-to-one expenses</span>
+            </span>
+          </button>
+        )}
       </div>
-
-      <FloatingActionButton
-        id="add-profile-btn"
-        onClick={() => setShowAddProfile(true)}
-        ariaLabel="Add friend"
-      />
 
       {showAddProfile && (
         <AddProfileModal
@@ -220,7 +238,7 @@ export default function Home({ store, onSelectProfile }) {
       {/* ── Footer ───────────────────────────────── */}
       <footer className="home-footer">
         <p>Made by <span className="home-footer-name">Varad Annadate</span></p>
-        <p className="home-footer-version">v3.3.0</p>
+        <p className="home-footer-version">v3.3.1</p>
       </footer>
 
     </div>

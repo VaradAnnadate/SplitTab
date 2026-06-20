@@ -1,5 +1,6 @@
 // AddTransactionModal.jsx — Bottom sheet to log or edit a transaction
 import { useState } from 'react';
+import ModalPortal from './ModalPortal';
 import './Modal.css';
 
 function formatCurrency(amount) {
@@ -37,6 +38,7 @@ export default function AddTransactionModal({
   };
 
   return (
+    <ModalPortal>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-sheet" onClick={e => e.stopPropagation()}>
         <div className="modal-handle" />
@@ -128,5 +130,6 @@ export default function AddTransactionModal({
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 }
