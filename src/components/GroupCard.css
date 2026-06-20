@@ -1,7 +1,9 @@
+/* GroupCard.css */
 .group-card {
   position: relative;
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  overflow: visible !important;
 }
 
 .group-card-main {
@@ -16,6 +18,8 @@
   text-align: left;
   -webkit-tap-highlight-color: transparent;
   min-width: 0;
+  border-radius: var(--radius-md);
+  transition: background 0.12s ease;
 }
 
 .group-card-main:active {
@@ -89,17 +93,40 @@
   background: var(--green-light);
 }
 
-.group-delete-btn {
-  width: 34px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 1.25rem;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+/* ── 3-dot menu (mirrors ProfileCard) ──────────────────── */
+.group-card-menu-wrap {
+  position: relative;
+  flex-shrink: 0;
 }
 
-.group-delete-btn:active {
-  color: var(--red);
-  background: var(--red-light);
+.group-card-dots {
+  padding: 16px 14px 16px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease;
+  line-height: 1;
+}
+
+.group-card-dots:active {
+  color: var(--text-primary);
+}
+
+.group-card-menu {
+  position: absolute;
+  top: calc(100% - 8px);
+  right: 8px;
+  min-width: 150px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  z-index: 400;
+  animation: fadeIn 0.12s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }

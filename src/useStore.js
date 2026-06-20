@@ -346,6 +346,26 @@ export function useStore() {
     }
   };
 
+  const updateGroup = async (groupId, { name, emoji }) => {
+    if (isCloud) {
+      const { error } = await supabase
+        .from('groups')
+        .update({ name, emoji })
+        .eq('id', groupId);
+      if (error) { alert('Error: ' + error.message); return; }
+      setCloudGroups(prev => prev.map(g =>
+        g.id === groupId ? { ...g, name, emoji } : g
+      ));
+    } else {
+      setLocalData(d => ({
+        ...d,
+        groups: (d.groups || []).map(g =>
+          g.id === groupId ? { ...g, name, emoji } : g
+        ),
+      }));
+    }
+  };
+
   const getGroup = (groupId) =>
     (isCloud ? cloudGroups : localData.groups || []).find(g => g.id === groupId);
 
@@ -597,6 +617,7 @@ export function useStore() {
     // Group CRUD
     addGroup,
     deleteGroup,
+    updateGroup,
     getGroup,
     addGroupExpense,
     deleteGroupExpense,

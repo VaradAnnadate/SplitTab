@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import './GroupCard.css';
 
 function formatCurrency(amount) {
@@ -8,9 +9,45 @@ function formatCurrency(amount) {
   }).format(Math.abs(amount));
 }
 
-export default function GroupCard({ group, settlements, totalSpend, onClick, onDelete, style }) {
+export default function GroupCard({ group, settlements, totalSpend, onClick, onDelete, onEdit, style }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close on outside tap
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [menuOpen]);
+
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    onEdit();
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    if (window.confirm(`Delete "${group.name}"? All group expenses will be deleted.`)) {
+      onDelete();
+    }
+  };
+
   return (
-    <div className="group-card card animate-in" style={style}>
+    <div
+      className="group-card card animate-in"
+      style={{ ...style, zIndex: menuOpen ? 10 : 1 }}
+    >
       <button className="group-card-main" onClick={onClick}>
         <div className="group-card-avatar">{group.emoji}</div>
         <div className="group-card-info">
@@ -26,18 +63,37 @@ export default function GroupCard({ group, settlements, totalSpend, onClick, onD
           </span>
         </div>
       </button>
-      <button
-        className="group-delete-btn"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (window.confirm(`Delete ${group.name}? All group expenses will be deleted.`)) {
-            onDelete();
-          }
-        }}
-        aria-label="Delete group"
-      >
-        ×
-      </button>
+
+      {/* 3-dot menu */}
+      <div className="group-card-menu-wrap" ref={menuRef}>
+        <button
+          className="group-card-dots"
+          onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v); }}
+          aria-label="Options"
+        >
+          ···
+        </button>
+
+        {menuOpen && (
+          <div className="group-card-menu" role="menu">
+            <button
+              className="profile-menu-item"
+              onClick={handleEdit}
+              role="menuitem"
+            >
+              ✏️ Edit
+            </button>
+            <div className="profile-menu-divider" />
+            <button
+              className="profile-menu-item profile-menu-item--danger"
+              onClick={handleDelete}
+              role="menuitem"
+            >
+              🗑 Delete
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

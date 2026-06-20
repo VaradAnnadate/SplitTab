@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import AddGroupModal from '../components/AddGroupModal';
 import GroupCard from '../components/GroupCard';
+import EditGroupModal from '../components/EditGroupModal';
 import './GroupsHome.css';
 
 function formatCurrency(amount) {
@@ -13,7 +14,8 @@ function formatCurrency(amount) {
 
 export default function GroupsHome({ store, onSelectGroup }) {
   const [showAddGroup, setShowAddGroup] = useState(false);
-  const { groups, addGroup, deleteGroup, getGroupSettlements } = store;
+  const [editingGroup, setEditingGroup] = useState(null);
+  const { groups, addGroup, deleteGroup, updateGroup, getGroupSettlements } = store;
 
   const totalSpend = groups.reduce(
     (sum, group) => sum + group.expenses.reduce((acc, expense) => acc + expense.amount, 0),
@@ -27,7 +29,7 @@ export default function GroupsHome({ store, onSelectGroup }) {
   return (
     <div className="page groups-page">
       <div className="page-header">
-        <p className="label">Events & groups</p>
+        <p className="label">Events &amp; groups</p>
         <div className="header-title-row">
           <h1 className="heading-xl groups-title">GROUP<br />TABS</h1>
         </div>
@@ -67,6 +69,7 @@ export default function GroupsHome({ store, onSelectGroup }) {
                 settlements={getGroupSettlements(group.id)}
                 onClick={() => onSelectGroup(group.id)}
                 onDelete={() => deleteGroup(group.id)}
+                onEdit={() => setEditingGroup(group)}
                 style={{ animationDelay: `${i * 0.025}s` }}
               />
             ))}
@@ -107,6 +110,17 @@ export default function GroupsHome({ store, onSelectGroup }) {
             setShowAddGroup(false);
           }}
           onClose={() => setShowAddGroup(false)}
+        />
+      )}
+
+      {editingGroup && (
+        <EditGroupModal
+          group={editingGroup}
+          onSave={async ({ name, emoji }) => {
+            await updateGroup(editingGroup.id, { name, emoji });
+            setEditingGroup(null);
+          }}
+          onClose={() => setEditingGroup(null)}
         />
       )}
 
