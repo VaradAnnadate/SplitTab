@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AddGroupExpenseModal from '../components/AddGroupExpenseModal';
+import FloatingActionButton from '../components/FloatingActionButton';
 import './GroupDetail.css';
 
 function formatCurrency(amount) {
@@ -150,14 +151,11 @@ export default function GroupDetail({ groupId, store, onBack }) {
         </div>
       </div>
 
-      <button
+      <FloatingActionButton
         id="add-group-expense-btn"
-        className="fab"
         onClick={() => setShowAddExpense(true)}
-        aria-label="Add group expense"
-      >
-        +
-      </button>
+        ariaLabel="Add group expense"
+      />
 
       {showAddExpense && (
         <AddGroupExpenseModal

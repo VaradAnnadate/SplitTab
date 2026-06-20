@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import TransactionItem from '../components/TransactionItem';
 import AddTransactionModal from '../components/AddTransactionModal';
+import FloatingActionButton from '../components/FloatingActionButton';
 import './ProfileDetail.css';
 
 function formatCurrency(amount) {
@@ -148,15 +149,11 @@ export default function ProfileDetail({ profileId, store, onBack, onInvoice }) {
         )}
       </div>
 
-      {/* FAB */}
-      <button
+      <FloatingActionButton
         id="add-transaction-btn"
-        className="fab"
         onClick={() => setShowAddTx(true)}
-        aria-label="Add transaction"
-      >
-        +
-      </button>
+        ariaLabel="Add transaction"
+      />
 
       {showAddTx && (
         <AddTransactionModal

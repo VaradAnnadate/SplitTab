@@ -8,7 +8,7 @@ It works without an account using local storage, and can sync across devices wit
 
 ## Current Release
 
-**Version 3.3: Settle Smart**
+**v3.3.0**
 
 This release focuses on making balances easier to understand and close:
 

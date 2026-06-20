@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import AddProfileModal from '../components/AddProfileModal';
 import EditProfileModal from '../components/EditProfileModal';
 import ProfileCard from '../components/ProfileCard';
+import FloatingActionButton from '../components/FloatingActionButton';
 import './Home.css';
 
 function formatCurrency(amount) {
@@ -192,15 +193,11 @@ export default function Home({ store, onSelectProfile }) {
         )}
       </div>
 
-      {/* ── FAB ──────────────────────────────────────── */}
-      <button
+      <FloatingActionButton
         id="add-profile-btn"
-        className="fab"
         onClick={() => setShowAddProfile(true)}
-        aria-label="Add friend"
-      >
-        +
-      </button>
+        ariaLabel="Add friend"
+      />
 
       {showAddProfile && (
         <AddProfileModal
@@ -223,7 +220,7 @@ export default function Home({ store, onSelectProfile }) {
       {/* ── Footer ───────────────────────────────── */}
       <footer className="home-footer">
         <p>Made by <span className="home-footer-name">Varad Annadate</span></p>
-        <p className="home-footer-version">Version 3.3: Settle Smart</p>
+        <p className="home-footer-version">v3.3.0</p>
       </footer>
 
     </div>

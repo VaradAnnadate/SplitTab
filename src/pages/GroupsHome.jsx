@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AddGroupModal from '../components/AddGroupModal';
+import FloatingActionButton from '../components/FloatingActionButton';
 import GroupCard from '../components/GroupCard';
 import './GroupsHome.css';
 
@@ -74,14 +75,11 @@ export default function GroupsHome({ store, onSelectGroup }) {
         )}
       </div>
 
-      <button
+      <FloatingActionButton
         id="add-group-btn"
-        className="fab"
         onClick={() => setShowAddGroup(true)}
-        aria-label="Add group"
-      >
-        +
-      </button>
+        ariaLabel="Add group"
+      />
 
       {showAddGroup && (
         <AddGroupModal
