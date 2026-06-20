@@ -44,29 +44,56 @@ function mapTx(t) {
     createdAt: t.created_at,
   };
 }
+function mapGroupMember(m) {
+  return {
+    id: m.id,
+    name: m.name,
+    emoji: m.emoji || '👤',
+  };
+}
+function mapGroupExpense(e) {
+  return {
+    id: e.id,
+    title: e.title,
+    amount: parseFloat(e.amount),
+    paidByMemberId: e.paid_by_member_id,
+    participantIds: e.participant_ids || [],
+    splitType: e.split_type || 'equal',
+    note: e.note || '',
+    date: e.date,
+    createdAt: e.created_at,
+  };
+}
+function mapGroup(g) {
+  return {
+    id: g.id,
+    name: g.name,
+    emoji: g.emoji || '👥',
+    createdAt: g.created_at,
+    members: (g.group_members || []).map(mapGroupMember),
+    expenses: (g.group_expenses || []).map(mapGroupExpense),
+  };
+}
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 export function useStore() {
   const [session, setSession] = useState(null);
-  const [authLoading, setAuthLoading] = useState(() => !!supabase);  // waiting for Supabase auth check
+  const [authLoading, setAuthLoading] = useState(() => !!supabase);
   const [dataLoading, setDataLoading] = useState(false);
 
   const [localData, setLocalData] = useState(loadLocal);
   const [cloudProfiles, setCloudProfiles] = useState([]);
+  const [cloudGroups, setCloudGroups] = useState([]);
 
   const isCloud = isConfigured && !!session;
 
   // ── Auth listener ────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!supabase) {
-      return;
-    }
-    // Get initial session
+    if (!supabase) return;
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setAuthLoading(false);
     });
-    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -78,15 +105,28 @@ export function useStore() {
     if (!supabase || !session) return;
     setDataLoading(true);
     try {
-      const { data, error } = await supabase
+      // Profiles + transactions
+      const { data: profilesData, error: pe } = await supabase
         .from('profiles')
         .select(`
           id, name, emoji, created_at,
           transactions ( id, amount, note, direction, date, created_at )
         `)
         .order('created_at', { ascending: true });
-      if (error) throw error;
-      setCloudProfiles((data || []).map(mapProfile));
+      if (pe) throw pe;
+      setCloudProfiles((profilesData || []).map(mapProfile));
+
+      // Groups + members + expenses
+      const { data: groupsData, error: ge } = await supabase
+        .from('groups')
+        .select(`
+          id, name, emoji, created_at,
+          group_members ( id, name, emoji ),
+          group_expenses ( id, title, amount, paid_by_member_id, participant_ids, split_type, note, date, created_at )
+        `)
+        .order('created_at', { ascending: true });
+      if (ge) throw ge;
+      setCloudGroups((groupsData || []).map(mapGroup));
     } catch (err) {
       console.error('fetchCloud error:', err.message);
     } finally {
@@ -100,6 +140,7 @@ export function useStore() {
         fetchCloud();
       } else {
         setCloudProfiles([]);
+        setCloudGroups([]);
       }
     }, 0);
     return () => window.clearTimeout(timer);
@@ -125,6 +166,7 @@ export function useStore() {
     if (supabase) await supabase.auth.signOut();
     setSession(null);
     setCloudProfiles([]);
+    setCloudGroups([]);
   };
 
   // ─── Local→Cloud migration ────────────────────────────────────────────────────
@@ -152,7 +194,6 @@ export function useStore() {
           if (te) throw te;
         }
       }
-      // Clear local data after successful migration
       setLocalData(d => ({ ...d, profiles: [] }));
       await fetchCloud();
     } catch (err) {
@@ -237,40 +278,78 @@ export function useStore() {
     (isCloud ? cloudProfiles : localData.profiles).find(p => p.id === profileId);
 
   // ─── Group CRUD ──────────────────────────────────────────────────────────────
-  const addGroup = ({ name, emoji = '👥', members }) => {
-    const now = new Date().toISOString();
+  const addGroup = async ({ name, emoji = '👥', members }) => {
     const cleanMembers = members
-      .map(member => ({
+      .map(m => ({ name: m.name.trim(), emoji: m.emoji || '👤' }))
+      .filter(m => m.name);
+
+    if (isCloud) {
+      // 1. Insert group
+      const { data: dbGroup, error: ge } = await supabase
+        .from('groups')
+        .insert([{ name: name.trim(), emoji, user_id: session.user.id }])
+        .select()
+        .single();
+      if (ge) { alert('Error: ' + ge.message); return; }
+
+      // 2. Insert members
+      let dbMembers = [];
+      if (cleanMembers.length > 0) {
+        const memberRows = cleanMembers.map(m => ({
+          group_id: dbGroup.id,
+          name: m.name,
+          emoji: m.emoji,
+        }));
+        const { data: md, error: me } = await supabase
+          .from('group_members')
+          .insert(memberRows)
+          .select();
+        if (me) { alert('Error: ' + me.message); return; }
+        dbMembers = md || [];
+      }
+
+      const newGroup = {
+        id: dbGroup.id,
+        name: dbGroup.name,
+        emoji: dbGroup.emoji,
+        createdAt: dbGroup.created_at,
+        members: dbMembers.map(mapGroupMember),
+        expenses: [],
+      };
+      setCloudGroups(prev => [...prev, newGroup]);
+      return newGroup.id;
+    } else {
+      const now = new Date().toISOString();
+      const group = {
         id: crypto.randomUUID(),
-        name: member.name.trim(),
-        emoji: member.emoji || '👤',
-      }))
-      .filter(member => member.name);
-
-    const group = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      emoji,
-      members: cleanMembers,
-      expenses: [],
-      createdAt: now,
-    };
-
-    setLocalData(d => ({ ...d, groups: [...(d.groups || []), group] }));
-    return group.id;
+        name: name.trim(),
+        emoji,
+        members: cleanMembers.map(m => ({ id: crypto.randomUUID(), ...m })),
+        expenses: [],
+        createdAt: now,
+      };
+      setLocalData(d => ({ ...d, groups: [...(d.groups || []), group] }));
+      return group.id;
+    }
   };
 
-  const deleteGroup = (groupId) => {
-    setLocalData(d => ({
-      ...d,
-      groups: (d.groups || []).filter(group => group.id !== groupId),
-    }));
+  const deleteGroup = async (groupId) => {
+    if (isCloud) {
+      const { error } = await supabase.from('groups').delete().eq('id', groupId);
+      if (error) { alert('Error: ' + error.message); return; }
+      setCloudGroups(prev => prev.filter(g => g.id !== groupId));
+    } else {
+      setLocalData(d => ({
+        ...d,
+        groups: (d.groups || []).filter(g => g.id !== groupId),
+      }));
+    }
   };
 
   const getGroup = (groupId) =>
-    (localData.groups || []).find(group => group.id === groupId);
+    (isCloud ? cloudGroups : localData.groups || []).find(g => g.id === groupId);
 
-  const addGroupExpense = (groupId, {
+  const addGroupExpense = async (groupId, {
     title,
     amount,
     paidByMemberId,
@@ -280,49 +359,77 @@ export function useStore() {
   }) => {
     const txDate = date || new Date().toISOString().split('T')[0];
     const parsedAmount = parseFloat(amount);
-    const expense = {
-      id: crypto.randomUUID(),
-      title: title.trim(),
-      amount: parsedAmount,
-      paidByMemberId,
-      participantIds,
-      splitType: 'equal',
-      note,
-      date: txDate,
-      createdAt: new Date().toISOString(),
-    };
 
-    setLocalData(d => ({
-      ...d,
-      groups: (d.groups || []).map(group =>
-        group.id === groupId
-          ? { ...group, expenses: [...group.expenses, expense] }
-          : group
-      ),
-    }));
+    if (isCloud) {
+      const { data, error } = await supabase
+        .from('group_expenses')
+        .insert([{
+          group_id: groupId,
+          title: title.trim(),
+          amount: parsedAmount,
+          paid_by_member_id: paidByMemberId,
+          participant_ids: participantIds,
+          split_type: 'equal',
+          note,
+          date: txDate,
+        }])
+        .select()
+        .single();
+      if (error) { alert('Error: ' + error.message); return; }
+      const expense = mapGroupExpense(data);
+      setCloudGroups(prev => prev.map(g =>
+        g.id === groupId ? { ...g, expenses: [...g.expenses, expense] } : g
+      ));
+    } else {
+      const expense = {
+        id: crypto.randomUUID(),
+        title: title.trim(),
+        amount: parsedAmount,
+        paidByMemberId,
+        participantIds,
+        splitType: 'equal',
+        note,
+        date: txDate,
+        createdAt: new Date().toISOString(),
+      };
+      setLocalData(d => ({
+        ...d,
+        groups: (d.groups || []).map(g =>
+          g.id === groupId ? { ...g, expenses: [...g.expenses, expense] } : g
+        ),
+      }));
+    }
   };
 
-  const deleteGroupExpense = (groupId, expenseId) => {
-    setLocalData(d => ({
-      ...d,
-      groups: (d.groups || []).map(group =>
-        group.id === groupId
-          ? { ...group, expenses: group.expenses.filter(expense => expense.id !== expenseId) }
-          : group
-      ),
-    }));
+  const deleteGroupExpense = async (groupId, expenseId) => {
+    if (isCloud) {
+      const { error } = await supabase.from('group_expenses').delete().eq('id', expenseId);
+      if (error) { alert('Error: ' + error.message); return; }
+      setCloudGroups(prev => prev.map(g =>
+        g.id === groupId ? { ...g, expenses: g.expenses.filter(e => e.id !== expenseId) } : g
+      ));
+    } else {
+      setLocalData(d => ({
+        ...d,
+        groups: (d.groups || []).map(g =>
+          g.id === groupId
+            ? { ...g, expenses: g.expenses.filter(e => e.id !== expenseId) }
+            : g
+        ),
+      }));
+    }
   };
 
   const getGroupBalances = (groupId) => {
     const group = getGroup(groupId);
     if (!group) return {};
 
-    const balances = Object.fromEntries(group.members.map(member => [member.id, 0]));
+    const balances = Object.fromEntries(group.members.map(m => [m.id, 0]));
 
     group.expenses.forEach(expense => {
       const participants = expense.participantIds?.length
         ? expense.participantIds
-        : group.members.map(member => member.id);
+        : group.members.map(m => m.id);
       const share = expense.amount / participants.length;
 
       balances[expense.paidByMemberId] = (balances[expense.paidByMemberId] || 0) + expense.amount;
@@ -339,7 +446,7 @@ export function useStore() {
     if (!group) return [];
 
     const balances = getGroupBalances(groupId);
-    const byMemberId = Object.fromEntries(group.members.map(member => [member.id, member]));
+    const byMemberId = Object.fromEntries(group.members.map(m => [m.id, m]));
     const debtors = [];
     const creditors = [];
 
@@ -350,12 +457,11 @@ export function useStore() {
     });
 
     const settlements = [];
-    let debtorIndex = 0;
-    let creditorIndex = 0;
+    let di = 0, ci = 0;
 
-    while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
-      const debtor = debtors[debtorIndex];
-      const creditor = creditors[creditorIndex];
+    while (di < debtors.length && ci < creditors.length) {
+      const debtor = debtors[di];
+      const creditor = creditors[ci];
       const amount = Math.min(debtor.amount, creditor.amount);
 
       settlements.push({
@@ -368,8 +474,8 @@ export function useStore() {
 
       debtor.amount = Math.round((debtor.amount - amount) * 100) / 100;
       creditor.amount = Math.round((creditor.amount - amount) * 100) / 100;
-      if (debtor.amount <= 0.01) debtorIndex += 1;
-      if (creditor.amount <= 0.01) creditorIndex += 1;
+      if (debtor.amount <= 0.01) di += 1;
+      if (creditor.amount <= 0.01) ci += 1;
     }
 
     return settlements;
@@ -432,12 +538,7 @@ export function useStore() {
         ...d,
         profiles: d.profiles.map(p =>
           p.id === profileId
-            ? {
-                ...p,
-                transactions: p.transactions.map(t =>
-                  t.id === txId ? { ...t, ...updates } : t
-                ),
-              }
+            ? { ...p, transactions: p.transactions.map(t => t.id === txId ? { ...t, ...updates } : t) }
             : p
         ),
       }));
@@ -474,7 +575,7 @@ export function useStore() {
   return {
     // Data
     profiles: isCloud ? cloudProfiles : localData.profiles,
-    groups: localData.groups || [],
+    groups: isCloud ? cloudGroups : localData.groups || [],
     localProfileCount: localData.profiles.length,
     // Auth state
     session,
@@ -487,12 +588,13 @@ export function useStore() {
     loginWithGoogle,
     logout,
     importLocalToCloud,
-    // CRUD
+    // Profile CRUD
     addProfile,
     deleteProfile,
     updateProfile,
     clearTransactions,
     getProfile,
+    // Group CRUD
     addGroup,
     deleteGroup,
     getGroup,
@@ -500,6 +602,7 @@ export function useStore() {
     deleteGroupExpense,
     getGroupBalances,
     getGroupSettlements,
+    // Transaction CRUD
     addTransaction,
     updateTransaction,
     deleteTransaction,
